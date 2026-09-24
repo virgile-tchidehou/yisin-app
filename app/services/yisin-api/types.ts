@@ -118,36 +118,36 @@ export interface MessageFeedbackResponse {
 // ============================================================================
 
 export type RunStatus
-  =  | 'created'
-  | 'executing'
-  | 'authorizing'
-  | 'quota_reserved'
-  | 'validating_input'
-  | 'analyzing_query'
-  | 'routing_corpus'
-  | 'retrieving'
-  | 'reranking'
-  | 'building_evidence'
-  | 'drafting'
-  | 'verifying_claims'
-  | 'verifying_citations'
-  | 'finalizing'
-  | 'cancellation_requested'
-  | 'needs_input'
-  | 'completed'
-  | 'cancelled'
-  | 'failed'
-  // Legacy compatibility
-  | 'needs_clarification'
-  | 'insufficient_evidence'
-  | 'validation_rejected'
+  = 'created'
+    | 'executing'
+    | 'authorizing'
+    | 'quota_reserved'
+    | 'validating_input'
+    | 'analyzing_query'
+    | 'routing_corpus'
+    | 'retrieving'
+    | 'reranking'
+    | 'building_evidence'
+    | 'drafting'
+    | 'verifying_claims'
+    | 'verifying_citations'
+    | 'finalizing'
+    | 'cancellation_requested'
+    | 'needs_input'
+    | 'completed'
+    | 'cancelled'
+    | 'failed'
+    // Legacy compatibility
+    | 'needs_clarification'
+    | 'insufficient_evidence'
+    | 'validation_rejected'
 
 export type RunAction
-  =  | 'answer_directly'
-  | 'ask_clarification'
-  | 'ask_for_document'
-  | 'refuse'
-  | 'escalate'
+  = 'answer_directly'
+    | 'ask_clarification'
+    | 'ask_for_document'
+    | 'refuse'
+    | 'escalate'
 
 export type ClarificationKind = 'free_text' | 'yes_no' | 'single_choice' | 'multi_choice' | 'date'
 
@@ -170,14 +170,14 @@ export interface DocumentRequest {
 }
 
 export type MatterStatus
-  =  | 'understanding'
-  | 'clarifying'
-  | 'researching'
-  | 'reasoning'
-  | 'answering'
-  | 'answered'
-  | 'resolved'
-  | 'closed'
+  = 'understanding'
+    | 'clarifying'
+    | 'researching'
+    | 'reasoning'
+    | 'answering'
+    | 'answered'
+    | 'resolved'
+    | 'closed'
 
 export interface Matter {
   matter_id: string
