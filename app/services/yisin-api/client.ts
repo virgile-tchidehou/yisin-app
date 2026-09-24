@@ -1,118 +1,73 @@
-/**
- * Client HTTP pour yisin-api
- * Gère l'authentification bearer et les erreurs
- */
-
-import type { ApiErrorResponse, YisinApiError as YisinApiErrorType } from './types'
-
-export class YisinApiError extends Error implements YisinApiErrorType {
-  constructor(
-    public code: string,
-    message: string,
-    public statusCode: number,
-    public requestId?: string,
-    public details?: Record<string, unknown>
-  ) {
-    super(message)
-    this.name = 'YisinApiError'
-  }
-}
+import { toYisinApiError } from './errors'
 
 export interface YisinApiClientConfig {
   baseUrl: string
-  getToken: () => string | Promise<string | null> | null
+  getToken: () => string | null | Promise<string | null>
+}
+
+export interface YisinRequestOptions extends RequestInit {
+  idempotencyKey?: string
 }
 
 export class YisinApiClient {
-  private baseUrl: string
-  private getToken: () => string | Promise<string | null> | null
+  private readonly baseUrl: string
+  private readonly getToken: YisinApiClientConfig['getToken']
 
   constructor(config: YisinApiClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, '')
     this.getToken = config.getToken
   }
 
-  /**
-   * Effectue une requête HTTP vers yisin-api
-   */
-  async request<T>(
-    path: string,
-    options: RequestInit & {
-      idempotencyKey?: string
-    } = {}
-  ): Promise<T> {
+  resolveUrl(path: string): string {
+    return `${this.baseUrl}${path.startsWith('/') ? path : `/${path}`}`
+  }
+
+  async raw(path: string, options: YisinRequestOptions = {}): Promise<Response> {
     const { idempotencyKey, ...fetchOptions } = options
-
-    // Construire l'URL
-    const url = `${this.baseUrl}${path}`
-
-    // Construire les headers
     const headers = new Headers(fetchOptions.headers)
-
-    // Ajouter le token bearer si disponible
     const token = await this.getToken()
+
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
 
-    // Ajouter Idempotency-Key si fourni
     if (idempotencyKey) {
       headers.set('Idempotency-Key', idempotencyKey)
     }
 
-    // Content-Type par défaut pour les requêtes avec body
-    if (fetchOptions.body && !headers.has('Content-Type')) {
+    const body = fetchOptions.body
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+
+    if (body && !isFormData && !headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json')
     }
 
-    // Effectuer la requête
-    const response = await fetch(url, {
+    const response = await fetch(this.resolveUrl(path), {
       ...fetchOptions,
       headers
     })
 
-    // Gérer les erreurs
     if (!response.ok) {
-      await this.handleError(response)
+      throw await toYisinApiError(response)
     }
 
-    // Retourner le JSON si status != 204
+    return response
+  }
+
+  async request<T>(path: string, options: YisinRequestOptions = {}): Promise<T> {
+    const response = await this.raw(path, options)
+
     if (response.status === 204) {
       return undefined as T
     }
 
-    return response.json()
+    return await response.json() as T
   }
 
-  /**
-   * Gère les erreurs HTTP
-   */
-  private async handleError(response: Response): Promise<never> {
-    let errorData: ApiErrorResponse | null = null
-
-    try {
-      errorData = await response.json()
-    } catch {
-      // Réponse non-JSON
-    }
-
-    const code = errorData?.code || 'unknown_error'
-    const message = errorData?.message || response.statusText || 'Une erreur est survenue'
-    const requestId = errorData?.request_id
-
-    throw new YisinApiError(code, message, response.status, requestId, errorData?.details)
-  }
-
-  /**
-   * GET request
-   */
   async get<T>(path: string, options?: RequestInit): Promise<T> {
     return this.request<T>(path, { ...options, method: 'GET' })
   }
 
-  /**
-   * POST request
-   */
   async post<T>(
     path: string,
     body?: unknown,
@@ -121,13 +76,10 @@ export class YisinApiClient {
     return this.request<T>(path, {
       ...options,
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined
+      body: body === undefined ? undefined : JSON.stringify(body)
     })
   }
 
-  /**
-   * PATCH request
-   */
   async patch<T>(
     path: string,
     body?: unknown,
@@ -136,47 +88,23 @@ export class YisinApiClient {
     return this.request<T>(path, {
       ...options,
       method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined
+      body: body === undefined ? undefined : JSON.stringify(body)
     })
   }
 
-  /**
-   * DELETE request
-   */
   async delete<T>(path: string, options?: RequestInit): Promise<T> {
     return this.request<T>(path, { ...options, method: 'DELETE' })
   }
 
-  /**
-   * Upload multipart/form-data
-   */
   async upload<T>(path: string, formData: FormData, options?: RequestInit): Promise<T> {
-    // Ne pas définir Content-Type, le navigateur le fera avec boundary
-    const token = await this.getToken()
-    const headers = new Headers(options?.headers)
-
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`)
-    }
-
-    const response = await fetch(`${this.baseUrl}${path}`, {
+    return this.request<T>(path, {
       ...options,
       method: 'POST',
-      headers,
       body: formData
     })
-
-    if (!response.ok) {
-      await this.handleError(response)
-    }
-
-    return response.json()
   }
 }
 
-/**
- * Génère une clé d'idempotence unique
- */
 export function generateIdempotencyKey(prefix = 'yisin'): string {
   return `${prefix}-${crypto.randomUUID()}`
 }
