@@ -3,6 +3,9 @@ import type { DropdownMenuItem } from '@nuxt/ui'
 
 const { loggedIn, openInPopup } = useUserSession()
 const { renameChat, deleteChat } = useChatActions()
+const { accessToken } = useYisinApi()
+const { loadIdentity } = useYisinWorkspace()
+const yisinConversations = useYisinConversations()
 
 const sidebarOpen = ref(false)
 const searchOpen = ref(false)
@@ -32,7 +35,38 @@ watch(loggedIn, () => {
   sidebarOpen.value = false
 })
 
-const { groups } = useChats(chats)
+const displayedChats = computed(() => {
+  if (!accessToken.value) return chats.value
+
+  return yisinConversations.conversations.value.map(conversation => ({
+    id: conversation.conversation_id,
+    label: conversation.title || 'Untitled',
+    to: `/chat/${conversation.conversation_id}`,
+    icon: 'i-lucide-message-circle',
+    createdAt: conversation.created_at
+  }))
+})
+
+async function refreshYisinConversations() {
+  if (!accessToken.value) return
+
+  await loadIdentity()
+  await yisinConversations.list({ archived: false })
+}
+
+onMounted(() => {
+  refreshYisinConversations().catch(() => {
+    // Auth/UI error handling will be centralized when YISIN auth is integrated.
+  })
+})
+
+watch(accessToken, async (token) => {
+  if (!token) return
+
+  await refreshYisinConversations()
+})
+
+const { groups } = useChats(displayedChats)
 
 const items = computed(() => groups.value?.flatMap((group) => {
   return [{
