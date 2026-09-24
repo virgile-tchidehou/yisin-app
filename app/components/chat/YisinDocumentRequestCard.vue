@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { DeepReadonly } from 'vue'
 import type { DocumentRequest } from '~/services/yisin-api'
 
 defineProps<{
-  request: Readonly<DocumentRequest>
+  request: DeepReadonly<DocumentRequest>
 }>()
 </script>
 
