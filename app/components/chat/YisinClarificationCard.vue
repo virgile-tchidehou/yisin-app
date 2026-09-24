@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { DeepReadonly } from 'vue'
 import type { Clarification } from '~/services/yisin-api'
 
 const props = defineProps<{
-  clarification: Readonly<Clarification>
+  clarification: DeepReadonly<Clarification>
   disabled?: boolean
 }>()
 
