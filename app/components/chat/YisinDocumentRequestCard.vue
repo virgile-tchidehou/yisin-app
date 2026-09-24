@@ -2,7 +2,7 @@
 import type { DocumentRequest } from '~/services/yisin-api'
 
 defineProps<{
-  request: DocumentRequest
+  request: Readonly<DocumentRequest>
 }>()
 </script>
 
