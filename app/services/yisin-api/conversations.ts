@@ -41,7 +41,7 @@ export class ConversationsService {
    * Récupère une conversation
    */
   async get(conversationId: string): Promise<ConversationSummaryResponse> {
-    return this.client.get<ConversationSummaryResponse>(`/api/v1/conversations/${conversationId}`)
+    return this.client.get<ConversationSummaryResponse>(`/api/v1/conversations/${encodeURIComponent(conversationId)}`)
   }
 
   /**
@@ -49,7 +49,7 @@ export class ConversationsService {
    */
   async getMessages(conversationId: string): Promise<ConversationMessagesResponse> {
     return this.client.get<ConversationMessagesResponse>(
-      `/api/v1/conversations/${conversationId}/messages`
+      `/api/v1/conversations/${encodeURIComponent(conversationId)}/messages`
     )
   }
 
@@ -68,7 +68,7 @@ export class ConversationsService {
     request: ConversationUpdateRequest
   ): Promise<ConversationSummaryResponse> {
     return this.client.patch<ConversationSummaryResponse>(
-      `/api/v1/conversations/${conversationId}`,
+      `/api/v1/conversations/${encodeURIComponent(conversationId)}`,
       request
     )
   }
@@ -77,7 +77,7 @@ export class ConversationsService {
    * Supprime une conversation
    */
   async delete(conversationId: string): Promise<void> {
-    return this.client.delete<void>(`/api/v1/conversations/${conversationId}`)
+    return this.client.delete<void>(`/api/v1/conversations/${encodeURIComponent(conversationId)}`)
   }
 
   /**
@@ -103,7 +103,7 @@ export class ConversationsService {
     idempotencyKey: string
   ): Promise<ChatSubmissionResponse> {
     return this.client.post<ChatSubmissionResponse>(
-      `/api/v1/conversations/${conversationId}/messages`,
+      `/api/v1/conversations/${encodeURIComponent(conversationId)}/messages`,
       request,
       { idempotencyKey }
     )
@@ -118,7 +118,7 @@ export class ConversationsService {
     request: MessageFeedbackRequest
   ): Promise<MessageFeedbackResponse> {
     return this.client.patch<MessageFeedbackResponse>(
-      `/api/v1/conversations/${conversationId}/messages/${messageId}/feedback`,
+      `/api/v1/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/feedback`,
       request
     )
   }
@@ -130,9 +130,9 @@ export class ConversationsService {
     conversationId: string,
     messageId: string,
     idempotencyKey: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     return this.client.post(
-      `/api/v1/conversations/${conversationId}/messages/${messageId}/retry`,
+      `/api/v1/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/retry`,
       undefined,
       { idempotencyKey }
     )
