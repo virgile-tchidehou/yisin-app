@@ -97,7 +97,8 @@ export function useYisinChat(conversationId: string) {
 
     const snapshot = await refreshRun(runId)
     await refreshMessages()
-    delete pendingRunIds.value[conversationId]
+    const { [conversationId]: _completedRun, ...remainingPendingRuns } = pendingRunIds.value
+    pendingRunIds.value = remainingPendingRuns
 
     if (snapshot.status === 'failed') {
       error.value = new Error(snapshot.message || snapshot.failure_code || 'Le traitement YISIN a échoué')
@@ -127,7 +128,8 @@ export function useYisinChat(conversationId: string) {
     if (!isTerminalRunStatus(snapshot.status)) {
       await followRun(snapshot.run_id)
     } else {
-      delete pendingRunIds.value[conversationId]
+      const { [conversationId]: _completedRun, ...remainingPendingRuns } = pendingRunIds.value
+      pendingRunIds.value = remainingPendingRuns
     }
 
     return result
