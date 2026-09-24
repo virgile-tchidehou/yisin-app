@@ -18,6 +18,7 @@ export function useYisinChat(conversationId: string) {
   const { api } = useYisinApi()
   const conversationLoader = useYisinConversation()
   const yisinConversations = useYisinConversations()
+  const { pendingRunIds } = yisinConversations
 
   const messages = useState<ChatMessageResponse[]>(`yisin:chat:${conversationId}:messages`, () => [])
   const run = useState<LegalRunResponse | null>(`yisin:chat:${conversationId}:run`, () => null)
@@ -96,6 +97,7 @@ export function useYisinChat(conversationId: string) {
 
     const snapshot = await refreshRun(runId)
     await refreshMessages()
+    delete pendingRunIds.value[conversationId]
 
     if (snapshot.status === 'failed') {
       error.value = new Error(snapshot.message || snapshot.failure_code || 'Le traitement YISIN a échoué')
@@ -113,15 +115,19 @@ export function useYisinChat(conversationId: string) {
       .reverse()
       .find(message => Boolean(message.run_id))
 
-    if (!lastRunMessage?.run_id) {
+    const runId = pendingRunIds.value[conversationId] ?? lastRunMessage?.run_id
+
+    if (!runId) {
       status.value = 'ready'
       return result
     }
 
-    const snapshot = await refreshRun(lastRunMessage.run_id)
+    const snapshot = await refreshRun(runId)
 
     if (!isTerminalRunStatus(snapshot.status)) {
       await followRun(snapshot.run_id)
+    } else {
+      delete pendingRunIds.value[conversationId]
     }
 
     return result
