@@ -4,6 +4,10 @@ const loading = ref(false)
 const chatId = crypto.randomUUID()
 
 const { user } = useUserSession()
+const toast = useToast()
+const { accessToken } = useYisinApi()
+const { workspace, loadIdentity } = useYisinWorkspace()
+const yisinConversations = useYisinConversations()
 
 const greeting = computed(() => {
   const hour = new Date().getHours()
@@ -33,26 +37,56 @@ async function createChat(prompt: string) {
   input.value = prompt
   loading.value = true
 
-  const parts: Array<{ type: string, text?: string, mediaType?: string, url?: string }> = [{ type: 'text', text: prompt }]
-
-  if (uploadedFiles.value.length > 0) {
-    parts.push(...uploadedFiles.value)
-  }
-
-  const chat = await $fetch('/api/chats', {
-    method: 'POST',
-    headers: { [headerName]: csrf },
-    body: {
-      id: chatId,
-      message: {
-        role: 'user',
-        parts
+  try {
+    if (accessToken.value) {
+      if (uploadedFiles.value.length > 0) {
+        toast.add({
+          description: 'Les pièces jointes YISIN seront activées avec le workflow documentaire.',
+          icon: 'i-lucide-file-clock',
+          color: 'warning'
+        })
+        return
       }
-    }
-  })
 
-  refreshNuxtData('chats')
-  navigateTo(`/chat/${chat?.id}`)
+      if (!workspace.value) {
+        await loadIdentity()
+      }
+
+      const submission = await yisinConversations.submitFirstMessage(prompt)
+      await yisinConversations.list({ archived: false })
+      await navigateTo(`/chat/${submission.conversation_id}`)
+      return
+    }
+
+    const parts: Array<{ type: string, text?: string, mediaType?: string, url?: string }> = [{ type: 'text', text: prompt }]
+
+    if (uploadedFiles.value.length > 0) {
+      parts.push(...uploadedFiles.value)
+    }
+
+    const chat = await $fetch('/api/chats', {
+      method: 'POST',
+      headers: { [headerName]: csrf },
+      body: {
+        id: chatId,
+        message: {
+          role: 'user',
+          parts
+        }
+      }
+    })
+
+    refreshNuxtData('chats')
+    await navigateTo(`/chat/${chat?.id}`)
+  } catch (cause) {
+    toast.add({
+      description: cause instanceof Error ? cause.message : 'Impossible de créer la conversation',
+      icon: 'i-lucide-alert-circle',
+      color: 'error'
+    })
+  } finally {
+    loading.value = false
+  }
 }
 
 async function onSubmit() {
