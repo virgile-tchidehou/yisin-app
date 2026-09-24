@@ -77,7 +77,7 @@ export class ConversationsService {
    * Supprime une conversation
    */
   async delete(conversationId: string): Promise<void> {
-    return this.client.delete<void>(`/api/v1/conversations/${encodeURIComponent(conversationId)}`)
+    await this.client.delete<unknown>(`/api/v1/conversations/${encodeURIComponent(conversationId)}`)
   }
 
   /**
