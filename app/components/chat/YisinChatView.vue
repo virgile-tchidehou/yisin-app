@@ -9,7 +9,7 @@ const input = ref('')
 const chat = useYisinChat(props.conversationId)
 const conversationState = useYisinConversation()
 
-const title = computed(() => conversationState.conversation.value?.title ?? null)
+const title = ref<string | null>(null)
 const busy = computed(() => chat.status.value === 'submitted' || chat.status.value === 'streaming')
 
 function noopOpen() {}
@@ -17,6 +17,7 @@ function noopOpen() {}
 async function loadConversation() {
   try {
     await chat.load()
+    title.value = conversationState.conversation.value?.title ?? null
   } catch (cause) {
     toast.add({
       description: cause instanceof Error ? cause.message : 'Impossible de charger la conversation',
@@ -27,7 +28,7 @@ async function loadConversation() {
   }
 }
 
-async function submit() {
+async function submit(_event?: Event) {
   const value = input.value.trim()
   if (!value || busy.value) return
 
@@ -80,7 +81,7 @@ watch(() => props.conversationId, async () => {
             :chat-id="conversationId"
             :title="title"
             :is-owner="true"
-            @update:title="conversationState.conversation.value && (conversationState.conversation.value.title = $event)"
+            @update:title="title = $event"
           />
         </template>
       </Navbar>
@@ -166,7 +167,7 @@ watch(() => props.conversationId, async () => {
           :error="chat.error.value || undefined"
           :open="noopOpen"
           class="sticky bottom-0 [view-transition-name:chat-prompt] rounded-b-none z-10"
-          @submit.prevent="submit"
+          @submit="submit"
           @stop="stop"
           @reload="submit"
         />
