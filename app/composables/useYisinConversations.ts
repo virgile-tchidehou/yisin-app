@@ -14,6 +14,7 @@ export function useYisinConversations() {
   const loading = useState<boolean>('yisin:conversations-loading', () => false)
   const error = useState<Error | null>('yisin:conversations-error', () => null)
   const hasMore = useState<boolean>('yisin:conversations-has-more', () => false)
+  const pendingRunIds = useState<Record<string, string>>('yisin:pending-run-ids', () => ({}))
 
   async function list(params: ListConversationsParams = {}) {
     if (!accessToken.value) {
@@ -58,13 +59,19 @@ export function useYisinConversations() {
       throw new Error('Aucun workspace YISIN disponible')
     }
 
-    return api.conversations.submitMessage(
+    const submission = await api.conversations.submitMessage(
       {
         workspace_id: activeWorkspace.workspace_id,
         content
       },
       generateIdempotencyKey('conversation')
     )
+
+    if (submission.run) {
+      pendingRunIds.value[submission.conversation_id] = submission.run.run_id
+    }
+
+    return submission
   }
 
   async function submitMessage(conversationId: string, content: string): Promise<ChatSubmissionResponse> {
@@ -72,11 +79,17 @@ export function useYisinConversations() {
       throw new Error('Authentification YISIN requise')
     }
 
-    return api.conversations.submitConversationMessage(
+    const submission = await api.conversations.submitConversationMessage(
       conversationId,
       { content },
       generateIdempotencyKey('message')
     )
+
+    if (submission.run) {
+      pendingRunIds.value[conversationId] = submission.run.run_id
+    }
+
+    return submission
   }
 
   async function rename(conversationId: string, title: string) {
@@ -99,6 +112,7 @@ export function useYisinConversations() {
     loading: readonly(loading),
     error: readonly(error),
     hasMore: readonly(hasMore),
+    pendingRunIds,
     list,
     get,
     getMessages,
