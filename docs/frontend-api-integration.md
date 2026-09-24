@@ -7,6 +7,33 @@
 
 ---
 
+## 0. Décisions de consolidation après audit
+
+Cette section fait autorité sur les propositions exploratoires plus bas dans le document.
+
+- La fondation `app/services/yisin-api/` est désormais implémentée sur `feat/yisin-foundation`.
+- Le streaming YISIN utilise `fetch() + ReadableStream` et un parseur SSE natif au projet. `EventSource` n'est pas la stratégie retenue, car le flux doit pouvoir envoyer `Authorization`, `Last-Event-ID` et un `AbortSignal`.
+- Aucun endpoint de login YISIN n'est inventé. L'API observée exige un Bearer token ; la fondation reçoit donc un `getToken()` injectable. Une future intégration OIDC/BFF devra partir d'un contrat backend réellement disponible.
+- Aucun fichier `.env` local n'est modifié. La clé `NUXT_PUBLIC_YISIN_API_BASE_URL` est documentée dans `.env.example` et exposée via le runtime config Nuxt.
+- `@ai-sdk/vue` n'est pas une dépendance architecturale de la couche YISIN. La future UI de chat privilégiera des composables YISIN natifs ; l'AI SDK pourra être retiré lorsqu'il ne sera plus utilisé par le template.
+- Lorsqu'une route existe mais que son schéma de réponse n'est pas établi par les contrats audités, la fondation retourne `unknown` au lieu d'inventer un type.
+- Les symboles ✅ dans l'ordre de migration ci-dessous décrivent la cible/ordre prévu dans l'audit initial et ne doivent pas être interprétés comme un état d'implémentation des phases ultérieures.
+
+### Fondation actuellement présente
+
+```text
+app/services/yisin-api/
+├── client.ts
+├── conversations.ts
+├── documents.ts
+├── errors.ts
+├── identity.ts
+├── index.ts
+├── legal-runs.ts
+├── streaming.ts
+└── types.ts
+```
+
 ## 1. Routes yisin-api trouvées
 
 ### 1.1 Conversations — STABLE/RECENT
@@ -1567,4 +1594,4 @@ pnpm build    # À exécuter après implémentation
 
 **Document généré le:** 2026-09-24  
 **Auteur:** Audit technique Kiro  
-**Statut:** Prêt pour implémentation Phase 0-1
+**Statut:** Fondation Phase 0-1 implémentée sur `feat/yisin-foundation`; validation locale à effectuer
