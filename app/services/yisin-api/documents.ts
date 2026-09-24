@@ -40,7 +40,7 @@ export class DocumentsService {
     const formData = new FormData()
     formData.append('workspace_id', input.workspaceId)
 
-    if (input.file instanceof File) {
+    if (typeof File !== 'undefined' && input.file instanceof File) {
       formData.append('file', input.file)
     } else {
       formData.append('file', input.file, input.filename ?? 'document')
