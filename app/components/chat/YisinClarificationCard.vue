@@ -14,6 +14,7 @@ const emit = defineEmits<{
 const freeText = ref('')
 const selected = ref<string[]>([])
 const other = ref('')
+const checkboxItems = computed(() => [...props.clarification.options])
 
 function submitFreeText() {
   const value = freeText.value.trim()
@@ -104,7 +105,7 @@ function submitMulti() {
     >
       <UCheckboxGroup
         v-model="selected"
-        :items="clarification.options"
+        :items="checkboxItems"
         :disabled="disabled"
       />
 
