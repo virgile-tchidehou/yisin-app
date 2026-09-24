@@ -16,17 +16,17 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  experimental: {
-    viewTransition: true
-  },
-
-  compatibilityDate: '2026-06-30',
-
   runtimeConfig: {
     public: {
       yisinApiBaseUrl: 'http://localhost:8000'
     }
   },
+
+  experimental: {
+    viewTransition: true
+  },
+
+  compatibilityDate: '2026-06-30',
 
   nitro: {
     experimental: {
