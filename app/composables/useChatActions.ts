@@ -13,6 +13,8 @@ export function useChatActions() {
   const toast = useToast()
   const overlay = useOverlay()
   const { csrf, headerName } = useCsrf()
+  const { accessToken } = useYisinApi()
+  const yisinConversations = useYisinConversations()
 
   const renameModal = overlay.create(LazyModalRename)
   const deleteModal = overlay.create(LazyModalConfirm, {
@@ -30,22 +32,26 @@ export function useChatActions() {
     if (!result || result === currentTitle) return null
 
     try {
-      await $fetch(`/api/chats/${id}/title`, {
-        method: 'PATCH',
-        headers: { [headerName]: csrf },
-        body: { title: result }
-      })
+      if (accessToken.value) {
+        await yisinConversations.rename(id, result)
+      } else {
+        await $fetch(`/api/chats/${id}/title`, {
+          method: 'PATCH',
+          headers: { [headerName]: csrf },
+          body: { title: result }
+        })
 
-      const chatsCache = useNuxtData<ChatListItem[]>('chats')
-      if (chatsCache.data.value) {
-        chatsCache.data.value = chatsCache.data.value.map(c =>
-          c.id === id ? { ...c, label: result } : c
-        )
-      }
+        const chatsCache = useNuxtData<ChatListItem[]>('chats')
+        if (chatsCache.data.value) {
+          chatsCache.data.value = chatsCache.data.value.map(chat =>
+            chat.id === id ? { ...chat, label: result } : chat
+          )
+        }
 
-      const chatCache = useNuxtData<{ title: string | null }>(`chat-${id}`)
-      if (chatCache.data.value) {
-        chatCache.data.value = { ...chatCache.data.value, title: result }
+        const chatCache = useNuxtData<{ title: string | null }>(`chat-${id}`)
+        if (chatCache.data.value) {
+          chatCache.data.value = { ...chatCache.data.value, title: result }
+        }
       }
 
       return result
@@ -67,21 +73,25 @@ export function useChatActions() {
     if (!result) return false
 
     try {
-      await $fetch(`/api/chats/${id}`, {
-        method: 'DELETE',
-        headers: { [headerName]: csrf }
-      })
+      if (accessToken.value) {
+        await yisinConversations.remove(id)
+      } else {
+        await $fetch(`/api/chats/${id}`, {
+          method: 'DELETE',
+          headers: { [headerName]: csrf }
+        })
+
+        const chatsCache = useNuxtData<ChatListItem[]>('chats')
+        if (chatsCache.data.value) {
+          chatsCache.data.value = chatsCache.data.value.filter(chat => chat.id !== id)
+        }
+      }
 
       toast.add({
         title: 'Chat deleted',
         description: 'Your chat has been deleted',
         icon: 'i-lucide-trash'
       })
-
-      const chatsCache = useNuxtData<ChatListItem[]>('chats')
-      if (chatsCache.data.value) {
-        chatsCache.data.value = chatsCache.data.value.filter(c => c.id !== id)
-      }
 
       if (route.params.id === id) {
         navigateTo('/')
