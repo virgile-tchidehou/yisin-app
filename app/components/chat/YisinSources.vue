@@ -2,7 +2,7 @@
 import type { PublicCitation } from '~/services/yisin-api'
 
 defineProps<{
-  citations: PublicCitation[]
+  citations: readonly PublicCitation[]
 }>()
 </script>
 
