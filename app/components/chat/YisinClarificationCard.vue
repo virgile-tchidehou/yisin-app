@@ -2,7 +2,7 @@
 import type { Clarification } from '~/services/yisin-api'
 
 const props = defineProps<{
-  clarification: Clarification
+  clarification: Readonly<Clarification>
   disabled?: boolean
 }>()
 
