@@ -117,8 +117,8 @@ export interface MessageFeedbackResponse {
 // Legal Runs
 // ============================================================================
 
-export type RunStatus =
-  | 'created'
+export type RunStatus
+  =  | 'created'
   | 'executing'
   | 'authorizing'
   | 'quota_reserved'
@@ -142,8 +142,8 @@ export type RunStatus =
   | 'insufficient_evidence'
   | 'validation_rejected'
 
-export type RunAction =
-  | 'answer_directly'
+export type RunAction
+  =  | 'answer_directly'
   | 'ask_clarification'
   | 'ask_for_document'
   | 'refuse'
@@ -169,8 +169,8 @@ export interface DocumentRequest {
   multiple_allowed: boolean
 }
 
-export type MatterStatus =
-  | 'understanding'
+export type MatterStatus
+  =  | 'understanding'
   | 'clarifying'
   | 'researching'
   | 'reasoning'
