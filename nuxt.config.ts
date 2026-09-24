@@ -22,6 +22,12 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-06-30',
 
+  runtimeConfig: {
+    public: {
+      yisinApiBaseUrl: 'http://localhost:8000'
+    }
+  },
+
   nitro: {
     experimental: {
       openAPI: true
