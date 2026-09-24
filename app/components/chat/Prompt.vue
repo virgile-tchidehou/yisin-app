@@ -7,12 +7,14 @@ const props = withDefaults(defineProps<{
   files?: FileWithStatus[]
   uploading?: boolean
   disabled?: boolean
+  mode?: 'template' | 'yisin'
   /** Opens the file picker. */
   open: () => void
 }>(), {
   status: 'ready',
   error: undefined,
-  files: () => []
+  files: () => [],
+  mode: 'template'
 })
 
 const emit = defineEmits<{
@@ -55,10 +57,10 @@ function appendTranscript(text: string) {
     </template>
 
     <template #footer>
-      <ChatPromptMenu :open="open" />
+      <ChatPromptMenu v-if="mode === 'template'" :open="open" />
 
       <div class="flex items-center gap-1">
-        <ModelSelect />
+        <ModelSelect v-if="mode === 'template'" />
 
         <ChatDictateButton
           v-if="canDictate"
