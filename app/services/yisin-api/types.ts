@@ -318,19 +318,6 @@ export interface ApiErrorResponse {
   details?: Record<string, unknown>
 }
 
-export class YisinApiError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public statusCode: number,
-    public requestId?: string,
-    public details?: Record<string, unknown>
-  ) {
-    super(message)
-    this.name = 'YisinApiError'
-  }
-}
-
 // ============================================================================
 // Query Parameters
 // ============================================================================
