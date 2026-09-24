@@ -54,7 +54,7 @@ export class DocumentsService {
   }
 
   async delete(documentId: string): Promise<void> {
-    return this.client.delete<void>(
+    await this.client.delete<unknown>(
       `/api/v1/documents/${encodeURIComponent(documentId)}`
     )
   }
